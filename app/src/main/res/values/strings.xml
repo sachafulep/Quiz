@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Quiz</string>
+    <string name="last_name">Last Name</string>
+    <string name="first_name">First Name</string>
+    <string name="submit">Submit</string>
+    <string name="quizzes">Quizzes</string>
+    <string name="question">question</string>
+    <string name="save_question">save question</string>
+    <string name="delete_question">delete question</string>
+    <string name="answer_0">answer 1 (correct answer)</string>
+    <string name="answer_1">answer 2</string>
+    <string name="answer_2">answer 3</string>
+    <string name="answer_3">answer 4</string>
+    <string name="delete_all_data">Delete all data</string>
+    <string name="admin">admin</string>
+    <string name="log_in">Log in!</string>
+    <string name="leaderboard">Leaderboard</string>
+    <string name="no_quiz">There is no new quiz to take at the moment</string>
+    <string name="add_new_quiz">Add new quiz</string>
+    <string name="export">Export</string>
+    <string name="import_Button">Import</string>
+    <string name="quiz_name">Quiz name</string>
+    <string name="selectedQuizIcon">Icon to indicate this is the currently selected quiz.</string>
+    <string name="plus">+</string>
+    <string name="delete_quiz">delete quiz</string>
+    <string name="players">players</string>
+    <string name="save_quiz">save quiz</string>
+    <string name="set_as_active_quiz">set as active quiz</string>
+</resources>
