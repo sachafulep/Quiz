@@ -11,14 +11,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.sacha.quiz.AdminActivity;
 import com.sacha.quiz.Classes.Quiz;
+import com.sacha.quiz.FirebaseClasses.QuizF;
 import com.sacha.quiz.R;
 
 import java.util.List;
 
 public class QuizAdapter extends RecyclerView.Adapter<QuizAdapter.ViewHolder> {
-    private List<Quiz> quizzes;
+    private List<QuizF> quizzes;
 
-    public QuizAdapter(List<Quiz> quizzes) {
+    public QuizAdapter(List<QuizF> quizzes) {
         this.quizzes = quizzes;
     }
 
@@ -33,7 +34,7 @@ public class QuizAdapter extends RecyclerView.Adapter<QuizAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(QuizAdapter.ViewHolder holder, int position) {
         String name = "";
-        Quiz quiz = quizzes.get(position);
+        QuizF quiz = quizzes.get(position);
         name += quiz.getTitle();
         holder.tvTitle.setText(name);
         holder.quiz = quizzes.get(position);
@@ -46,7 +47,7 @@ public class QuizAdapter extends RecyclerView.Adapter<QuizAdapter.ViewHolder> {
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView tvTitle;
-        public Quiz quiz;
+        public QuizF quiz;
 
         public ViewHolder(View rootView) {
             super(rootView);

@@ -9,18 +9,18 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.sacha.quiz.Adapters.QuestionAdapter;
 import com.sacha.quiz.Classes.Question;
 import com.sacha.quiz.Classes.Quiz;
 import com.sacha.quiz.Database.Database;
+import com.sacha.quiz.Firebase.FirebaseQuiz;
+import com.sacha.quiz.FirebaseClasses.QuizF;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +37,7 @@ public class AdminQuizActivity extends AppCompatActivity {
     boolean questionSelected = false;
     int currentQuestionID = -1;
     Quiz currentQuiz;
+    QuizF currentQuizF;
 
     EditText etQuestion;
     EditText etAnswer0;
@@ -64,17 +65,17 @@ public class AdminQuizActivity extends AppCompatActivity {
         tvPlus = findViewById(R.id.tvPlus);
         etQuizName = findViewById(R.id.etQuizName);
 
+        setupMsgHandler();
+
         mode = getIntent().getIntExtra("mode", -1);
 
         if (mode == EDIT) {
-            currentQuiz = database.quizDao().get(getIntent().getIntExtra("id", -1));
-            etQuizName.setText(currentQuiz.getTitle());
+            new FirebaseQuiz().get((getIntent().getIntExtra("id", -1)));
         } else {
             currentQuiz = new Quiz(-1, "temp");
         }
 
-        fillRecyclerViews();
-        setupMsgHandler();
+//        fillRecyclerViews();
         setButtonClickListeners();
     }
 
@@ -148,7 +149,7 @@ public class AdminQuizActivity extends AppCompatActivity {
         findViewById(R.id.btnSetActiveQuiz).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MainActivity.activeQuiz = currentQuiz;
+                LoginActivity.activeQuiz = currentQuiz;
                 findViewById(R.id.ivActive).setVisibility(View.VISIBLE);
             }
         });
@@ -162,7 +163,7 @@ public class AdminQuizActivity extends AppCompatActivity {
             database.questionDao().deleteQuestions(currentQuiz.getId());
         }
 
-        MainActivity.activeQuiz = null;
+        LoginActivity.activeQuiz = null;
 
         finish();
     }
@@ -262,10 +263,13 @@ public class AdminQuizActivity extends AppCompatActivity {
             @Override
             public void handleMessage(Message msg) {
                 Bundle data = msg.getData();
-                if (!data.isEmpty() && data.containsKey("id")) {
-
-                } else {
-                    showEditQuestionUI(data);
+                if (!data.isEmpty()) {
+                    if (data.containsKey("quiz")) {
+                        currentQuizF = data.getParcelable("quiz");
+                        etQuizName.setText(currentQuizF.getTitle());
+                    } else {
+                        showEditQuestionUI(data);
+                    }
                 }
             }
         };
@@ -386,7 +390,7 @@ public class AdminQuizActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.dismiss();
                         if (mode == CREATE) {
-                            MainActivity.activeQuiz = null;
+                            LoginActivity.activeQuiz = null;
                         }
 
                         onBackPressed();

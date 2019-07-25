@@ -19,7 +19,10 @@ import com.sacha.quiz.Adapters.QuizAdapter;
 import com.sacha.quiz.Classes.Player;
 import com.sacha.quiz.Classes.Quiz;
 import com.sacha.quiz.Database.Database;
+import com.sacha.quiz.Firebase.FirebaseQuiz;
+import com.sacha.quiz.FirebaseClasses.QuizF;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AdminActivity extends AppCompatActivity {
@@ -40,6 +43,8 @@ public class AdminActivity extends AppCompatActivity {
 
         setOnClickListeners();
         setupMsgHandler();
+
+        new FirebaseQuiz().getAll();
     }
 
     private void setOnClickListeners() {
@@ -98,7 +103,7 @@ public class AdminActivity extends AppCompatActivity {
                         database.quizDao().clear();
                         database.playerDao().clear();
 
-                        fillRecyclerViews();
+//                        fillRecyclerViews();
 
                         dialog.dismiss();
                     }
@@ -115,28 +120,41 @@ public class AdminActivity extends AppCompatActivity {
             public void handleMessage(Message msg) {
                 Bundle data = msg.getData();
                 if (!data.isEmpty()) {
-                    Intent intent = new Intent(AdminActivity.this, AdminQuizActivity.class);
-                    intent.putExtra("mode", AdminQuizActivity.EDIT);
-                    intent.putExtra("id", data.getInt("id"));
-                    startActivity(intent);
+                    if (data.containsKey("quizzes")) {
+                        ArrayList<? extends QuizF> quizzes = data.getParcelableArrayList("quizzes");
+                        fillRecyclerViews((List<QuizF>) quizzes);
+                    } else {
+                        Intent intent = new Intent(AdminActivity.this, AdminQuizActivity.class);
+                        intent.putExtra("mode", AdminQuizActivity.EDIT);
+                        intent.putExtra("id", data.getInt("id"));
+                        startActivity(intent);
+                    }
                 }
             }
         };
     }
 
-    private void fillRecyclerViews() {
+//    private void fillRecyclerViews() {
+//        RecyclerView rvQuizzes = findViewById(R.id.rvQuizzes);
+//        RecyclerView rvPlayers = findViewById(R.id.rvPlayers);
+//        rvQuizzes.setHasFixedSize(true);
+//        rvPlayers.setHasFixedSize(true);
+//        rvQuizzes.setLayoutManager(new LinearLayoutManager(this));
+//        rvPlayers.setLayoutManager(new LinearLayoutManager(this));
+//        quizzes = database.quizDao().getAll();
+//        players = database.playerDao().getAll();
+//        quizAdapter = new QuizAdapter(quizzes);
+//        playerAdapter = new PlayerAdapter(players);
+//        rvQuizzes.setAdapter(quizAdapter);
+//        rvPlayers.setAdapter(playerAdapter);
+//    }
+
+    private void fillRecyclerViews(List<QuizF> quizzes) {
         RecyclerView rvQuizzes = findViewById(R.id.rvQuizzes);
-        RecyclerView rvPlayers = findViewById(R.id.rvPlayers);
         rvQuizzes.setHasFixedSize(true);
-        rvPlayers.setHasFixedSize(true);
         rvQuizzes.setLayoutManager(new LinearLayoutManager(this));
-        rvPlayers.setLayoutManager(new LinearLayoutManager(this));
-        quizzes = database.quizDao().getAll();
-        players = database.playerDao().getAll();
         quizAdapter = new QuizAdapter(quizzes);
-        playerAdapter = new PlayerAdapter(players);
         rvQuizzes.setAdapter(quizAdapter);
-        rvPlayers.setAdapter(playerAdapter);
     }
 
     private void setToolbar() {
@@ -153,7 +171,7 @@ public class AdminActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        fillRecyclerViews();
+//        fillRecyclerViews();
     }
 
     @Override
