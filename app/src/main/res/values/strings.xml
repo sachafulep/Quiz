@@ -26,4 +26,7 @@
     <string name="players">players</string>
     <string name="save_quiz">save quiz</string>
     <string name="set_as_active_quiz">set as active quiz</string>
+    <string name="error_select_quiz">Tell Tamas to select a quiz.</string>
+    <string name="error_invalid_name">Please fill in your first and last name.</string>
+    <string name="error_already_taken">You have already taken this quiz.</string>
 </resources>

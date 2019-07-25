@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Quiz</string>
+    <string name="add_new_quiz">Voeg nieuwe quiz toe</string>
+    <string name="admin">admin</string>
+    <string name="answer_0">antwoord 1 (het correcte antwoord)</string>
+    <string name="answer_1">antwoord 2</string>
+    <string name="answer_2">antwoord 3</string>
+    <string name="answer_3">antwoord 4</string>
+    <string name="delete_all_data">Verwijder alle data</string>
+    <string name="delete_question">verwijder vraag</string>
+    <string name="delete_quiz">verwijder quiz</string>
+    <string name="export">exporteer</string>
+    <string name="first_name">voornaam</string>
+    <string name="import_Button">importeer</string>
+    <string name="last_name">achternaam</string>
+    <string name="leaderboard">Leaderboard</string>
+    <string name="log_in">Log in!</string>
+    <string name="no_quiz">Er is op dit moment geen nieuwe quiz</string>
+    <string name="players">Spelers</string>
+    <string name="plus">+</string>
+    <string name="question">vraag</string>
+    <string name="quiz_name">Quiz naam</string>
+    <string name="quizzes">Quizen</string>
+    <string name="save_question">vraag opslaan</string>
+    <string name="save_quiz">quiz opslaan</string>
+    <string name="selectedQuizIcon">Icoon dat aangeeft dat dit de huidige geselecteerde quiz is</string>
+    <string name="set_as_active_quiz">stel in als actieve quiz</string>
+    <string name="submit">Submit</string>
+    <string name="error_select_quiz">Vertel Tamas dat hij een quiz moet selecteren.</string>
+    <string name="error_invalid_name">Vul alstublieft je voor en achternaam in.</string>
+    <string name="error_already_taken">Je hebt deze quiz al gedaan.</string>
+</resources>
