@@ -21,7 +21,6 @@ import com.sacha.quiz.Adapters.QuestionAdapter;
 import com.sacha.quiz.Classes.Question;
 import com.sacha.quiz.Classes.Quiz;
 import com.sacha.quiz.Database.Database;
-import com.sacha.quiz.Firebase.FirebaseQuiz;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -149,7 +148,7 @@ public class AdminQuizActivity extends AppCompatActivity {
         findViewById(R.id.btnSetActiveQuiz).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                LoginActivity.activeQuiz = currentQuiz;
+                MainActivity.activeQuiz = currentQuiz;
                 findViewById(R.id.ivActive).setVisibility(View.VISIBLE);
             }
         });
@@ -163,7 +162,7 @@ public class AdminQuizActivity extends AppCompatActivity {
             database.questionDao().deleteQuestions(currentQuiz.getId());
         }
 
-        LoginActivity.activeQuiz = null;
+        MainActivity.activeQuiz = null;
 
         finish();
     }
@@ -240,7 +239,6 @@ public class AdminQuizActivity extends AppCompatActivity {
             }
 
             database.quizDao().addQuiz(currentQuiz);
-            new FirebaseQuiz().insert(currentQuiz);
             database.questionDao().addQuestions(questions);
 
         } else {
@@ -388,7 +386,7 @@ public class AdminQuizActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.dismiss();
                         if (mode == CREATE) {
-                            LoginActivity.activeQuiz = null;
+                            MainActivity.activeQuiz = null;
                         }
 
                         onBackPressed();

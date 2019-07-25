@@ -9,8 +9,6 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".LoginActivity">
-        </activity>
         <activity android:name=".AdminQuizActivity"/>
         <activity android:name=".AdminActivity"/>
         <activity android:name=".QuizActivity"/>
