@@ -1,12 +1,12 @@
 package com.sacha.quiz.FirebaseClasses;
 
-public class Score {
+public class ScoreF {
     private int id;
     private int quizID;
     private int playerID;
     private int score;
 
-    public Score(int id, int quizID, int playerID, int score) {
+    public ScoreF(int id, int quizID, int playerID, int score) {
         this.id = id;
         this.quizID = quizID;
         this.playerID = playerID;

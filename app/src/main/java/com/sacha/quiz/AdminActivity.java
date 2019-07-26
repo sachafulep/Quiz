@@ -7,22 +7,18 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.view.View;
-
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.sacha.quiz.Adapters.PlayerAdapter;
 import com.sacha.quiz.Adapters.QuizAdapter;
 import com.sacha.quiz.Classes.Player;
-import com.sacha.quiz.Classes.Quiz;
 import com.sacha.quiz.Database.Database;
 import com.sacha.quiz.Firebase.FirebaseQuiz;
 import com.sacha.quiz.FirebaseClasses.QuizF;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class AdminActivity extends AppCompatActivity {
@@ -30,7 +26,7 @@ public class AdminActivity extends AppCompatActivity {
     Database database;
     QuizAdapter quizAdapter;
     PlayerAdapter playerAdapter;
-    List<Quiz> quizzes;
+    List<QuizF> quizzes;
     List<Player> players;
 
     @Override
@@ -103,8 +99,6 @@ public class AdminActivity extends AppCompatActivity {
                         database.quizDao().clear();
                         database.playerDao().clear();
 
-//                        fillRecyclerViews();
-
                         dialog.dismiss();
                     }
                 });
@@ -121,8 +115,16 @@ public class AdminActivity extends AppCompatActivity {
                 Bundle data = msg.getData();
                 if (!data.isEmpty()) {
                     if (data.containsKey("quizzes")) {
-                        ArrayList<? extends QuizF> quizzes = data.getParcelableArrayList("quizzes");
-                        fillRecyclerViews((List<QuizF>) quizzes);
+                        quizzes = data.getParcelableArrayList("quizzes");
+                        fillRecyclerViews(quizzes);
+                    } else if (data.containsKey("quiz")) {
+                        QuizF quiz = data.getParcelable("quiz");
+                        if (quizzes.contains(quiz)) {
+                            quizzes.set(quizzes.indexOf(quiz), quiz);
+                        } else {
+                            quizzes.add(quiz);
+                        }
+                        quizAdapter.notifyDataSetChanged();
                     } else {
                         Intent intent = new Intent(AdminActivity.this, AdminQuizActivity.class);
                         intent.putExtra("mode", AdminQuizActivity.EDIT);
@@ -149,34 +151,32 @@ public class AdminActivity extends AppCompatActivity {
 //        rvPlayers.setAdapter(playerAdapter);
 //    }
 
-    private void fillRecyclerViews(List<QuizF> quizzes) {
-        RecyclerView rvQuizzes = findViewById(R.id.rvQuizzes);
-        rvQuizzes.setHasFixedSize(true);
-        rvQuizzes.setLayoutManager(new LinearLayoutManager(this));
-        quizAdapter = new QuizAdapter(quizzes);
-        rvQuizzes.setAdapter(quizAdapter);
-    }
+        private void fillRecyclerViews (List < QuizF > quizzes) {
+            RecyclerView rvQuizzes = findViewById(R.id.rvQuizzes);
+            rvQuizzes.setHasFixedSize(true);
+            rvQuizzes.setLayoutManager(new LinearLayoutManager(this));
+            quizAdapter = new QuizAdapter(quizzes);
+            rvQuizzes.setAdapter(quizAdapter);
+        }
 
-    private void setToolbar() {
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setDisplayShowHomeEnabled(true);
-            actionBar.setTitle("");
+        private void setToolbar () {
+            setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+            ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.setDisplayHomeAsUpEnabled(true);
+                actionBar.setDisplayShowHomeEnabled(true);
+                actionBar.setTitle("");
+            }
+        }
+
+        @Override
+        protected void onResume () {
+            super.onResume();
+        }
+
+        @Override
+        public boolean onSupportNavigateUp () {
+            onBackPressed();
+            return true;
         }
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-//        fillRecyclerViews();
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        onBackPressed();
-        return true;
-    }
-}

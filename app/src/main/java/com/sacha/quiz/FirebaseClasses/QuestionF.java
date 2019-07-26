@@ -1,21 +1,47 @@
 package com.sacha.quiz.FirebaseClasses;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.Arrays;
 import java.util.List;
 
-public class Question {
+public class QuestionF implements Parcelable {
     private int id;
-    private int quizId;
+    private int quizID;
     private String text;
     private String answers;
     private String correctAnswer;
 
-    public Question(int quizId, String text, String answers, String correctAnswer) {
-        this.quizId = quizId;
+    public QuestionF() {
+    }
+
+    public QuestionF(int quizID, String text, String answers, String correctAnswer) {
+        this.quizID = quizID;
         this.text = text;
         this.answers = answers;
         this.correctAnswer = correctAnswer;
     }
+
+    protected QuestionF(Parcel in) {
+        id = in.readInt();
+        quizID = in.readInt();
+        text = in.readString();
+        answers = in.readString();
+        correctAnswer = in.readString();
+    }
+
+    public static final Creator<QuestionF> CREATOR = new Creator<QuestionF>() {
+        @Override
+        public QuestionF createFromParcel(Parcel in) {
+            return new QuestionF(in);
+        }
+
+        @Override
+        public QuestionF[] newArray(int size) {
+            return new QuestionF[size];
+        }
+    };
 
     public static String convertAnswerList(List<String> answers) {
         StringBuilder result = new StringBuilder();
@@ -41,12 +67,12 @@ public class Question {
         this.id = id;
     }
 
-    public int getQuizId() {
-        return quizId;
+    public int getQuizID() {
+        return quizID;
     }
 
-    public void setQuizId(int quizId) {
-        this.quizId = quizId;
+    public void setQuizID(int quizID) {
+        this.quizID = quizID;
     }
 
     public String getText() {
@@ -71,5 +97,19 @@ public class Question {
 
     public void setCorrectAnswer(String correctAnswer) {
         this.correctAnswer = correctAnswer;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(id);
+        parcel.writeInt(quizID);
+        parcel.writeString(text);
+        parcel.writeString(answers);
+        parcel.writeString(correctAnswer);
     }
 }

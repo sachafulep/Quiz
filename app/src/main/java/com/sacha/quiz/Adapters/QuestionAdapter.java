@@ -11,14 +11,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.sacha.quiz.AdminQuizActivity;
 import com.sacha.quiz.Classes.Question;
+import com.sacha.quiz.FirebaseClasses.QuestionF;
 import com.sacha.quiz.R;
 
 import java.util.List;
 
 public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHolder> {
-    private List<Question> questions;
+    private List<QuestionF> questions;
 
-    public QuestionAdapter(List<Question> questions) {
+    public QuestionAdapter(List<QuestionF> questions) {
         this.questions = questions;
     }
 
@@ -33,7 +34,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
     @Override
     public void onBindViewHolder(QuestionAdapter.ViewHolder holder, int position) {
         String text = "";
-        Question question = questions.get(position);
+        QuestionF question = questions.get(position);
         text += question.getText();
         holder.tvTitle.setText(text);
         holder.question = questions.get(position);
@@ -46,7 +47,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView tvTitle;
-        public Question question;
+        public QuestionF question;
 
         public ViewHolder(View rootView) {
             super(rootView);
@@ -59,6 +60,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
                     Bundle bdl = new Bundle();
                     List<String> answers = question.getAnswerList();
 
+                    bdl.putString("type", "editQuestion");
                     bdl.putInt("id", question.getId());
                     bdl.putString("text", question.getText());
 

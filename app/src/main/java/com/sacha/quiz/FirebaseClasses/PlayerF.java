@@ -1,11 +1,11 @@
 package com.sacha.quiz.FirebaseClasses;
 
-public class Player {
+public class PlayerF {
     private int id;
     private String firstName;
     private String lastName;
 
-    public Player(int id, String firstName, String lastName) {
+    public PlayerF(int id, String firstName, String lastName) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;

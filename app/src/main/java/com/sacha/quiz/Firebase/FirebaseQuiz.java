@@ -11,6 +11,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.*;
 import com.sacha.quiz.AdminActivity;
 import com.sacha.quiz.AdminQuizActivity;
+import com.sacha.quiz.FirebaseClasses.QuestionF;
 import com.sacha.quiz.FirebaseClasses.QuizF;
 import com.sacha.quiz.MainActivity;
 
@@ -18,22 +19,51 @@ import java.util.ArrayList;
 
 public class FirebaseQuiz {
     FirebaseFirestore db = FirebaseFirestore.getInstance();
+    String quizID;
 
-    public void insert(QuizF quiz) {
-        db.collection("quizzes").document(String.valueOf(quiz.getId()))
-                .set(quiz)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
+    public void insertQuiz(final QuizF quiz, final ArrayList<QuestionF> questions) {
+        db.collection("quizzes")
+                .orderBy("id", Query.Direction.DESCENDING).limit(1).get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(MainActivity.TAG, "Quiz successfully written!");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(MainActivity.TAG, "Error writing quiz", e);
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        String quizID = "";
+
+                        if (queryDocumentSnapshots.size() < 1) {
+                            quizID = "0";
+                        } else {
+                            String temp = queryDocumentSnapshots.getDocuments().get(0).get("id").toString();
+                            quizID = Integer.toString(Integer.parseInt(temp) + 1);
+                        }
+
+                        insert(quizID, quiz, questions);
                     }
                 });
+    }
+
+    private void insert(String quizID, final QuizF quiz, ArrayList<QuestionF> questions) {
+        WriteBatch batch = db.batch();
+
+        DocumentReference quizRef = db.collection("quizzes").document(quizID);
+        quiz.setId(Integer.parseInt(quizID));
+        batch.set(quizRef, quiz);
+
+        for (QuestionF question : questions) {
+            question.setQuizID(Integer.parseInt(quizID));
+            batch.set(db.collection("questions")
+                    .document(Integer.toString(question.getId())), question);
+        }
+
+        batch.commit().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Message msg = Message.obtain();
+                Bundle bdl = new Bundle();
+                bdl.putParcelable("quiz", quiz);
+                msg.setData(bdl);
+                AdminActivity.handler.sendMessage(msg);
+            }
+        });
     }
 
     public void get(int id) {
@@ -44,6 +74,7 @@ public class FirebaseQuiz {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         Message msg = Message.obtain();
                         Bundle bdl = new Bundle();
+                        bdl.putString("type", "getQuiz");
                         bdl.putParcelable("quiz", documentSnapshot.toObject(QuizF.class));
                         msg.setData(bdl);
                         AdminQuizActivity.handler.sendMessage(msg);
