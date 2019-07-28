@@ -18,46 +18,40 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.sacha.quiz.Adapters.QuestionAdapter;
 import com.sacha.quiz.Classes.Question;
 import com.sacha.quiz.Classes.Quiz;
-import com.sacha.quiz.Database.Database;
 import com.sacha.quiz.Firebase.FirebaseQuestion;
 import com.sacha.quiz.Firebase.FirebaseQuiz;
-import com.sacha.quiz.FirebaseClasses.QuestionF;
-import com.sacha.quiz.FirebaseClasses.QuizF;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class AdminQuizActivity extends AppCompatActivity {
-    public static final int CREATE = 1;
-    public static final int EDIT = 2;
+    static final int CREATE = 1;
+    static final int EDIT = 2;
     public static Handler handler;
 
-    Database database;
-    int mode;
-    ArrayList<QuestionF> questionsF;
-    List<Question> questions;
-    QuestionAdapter adapter;
-    boolean questionSelected = false;
-    int currentQuestionID = -1;
-    Quiz currentQuiz;
-    QuizF currentQuizF;
+    private int mode;
+    private ArrayList<Question> questions;
+    private QuestionAdapter adapter;
+    private boolean questionSelected = false;
+    private String currentQuestionID = "";
+    private Quiz currentQuiz;
 
-    EditText etQuestion;
-    EditText etAnswer0;
-    EditText etAnswer1;
-    EditText etAnswer2;
-    EditText etAnswer3;
-    Button btnDeleteQuestion;
-    TextView tvPlus;
-    EditText etQuizName;
+    private FirebaseQuiz firebaseQuiz;
+
+    private EditText etQuestion;
+    private EditText etAnswer0;
+    private EditText etAnswer1;
+    private EditText etAnswer2;
+    private EditText etAnswer3;
+    private Button btnDeleteQuestion;
+    private TextView tvPlus;
+    private EditText etQuizName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_quiz);
         setToolbar();
-
-        database = Database.getInstance();
 
         etQuestion = findViewById(R.id.etQuestion);
         etAnswer0 = findViewById(R.id.etAnswer0);
@@ -68,18 +62,20 @@ public class AdminQuizActivity extends AppCompatActivity {
         tvPlus = findViewById(R.id.tvPlus);
         etQuizName = findViewById(R.id.etQuizName);
 
+        firebaseQuiz = new FirebaseQuiz();
+        FirebaseQuestion firebaseQuestion = new FirebaseQuestion();
+
         setupMsgHandler();
 
         mode = getIntent().getIntExtra("mode", -1);
 
         if (mode == EDIT) {
             int quizID = getIntent().getIntExtra("id", -1);
-            new FirebaseQuiz().get(quizID);
-            new FirebaseQuestion().getQuizQuestions(quizID);
+            firebaseQuiz.get(quizID);
+            firebaseQuestion.getQuizQuestions(quizID, "AdminQuiz");
         } else {
-            currentQuiz = new Quiz(-1, "temp");
-            currentQuizF = new QuizF(-1, "");
-            questionsF = new ArrayList<>();
+            currentQuiz = new Quiz(-1, "");
+            questions = new ArrayList<>();
             fillRecyclerViews();
         }
 
@@ -120,7 +116,7 @@ public class AdminQuizActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 for (Question question : questions) {
-                    if (question.getId() == currentQuestionID) {
+                    if (question.getId().equals(currentQuestionID)) {
                         questions.remove(question);
                         adapter.notifyDataSetChanged();
                         hideEditQuestionUI();
@@ -166,8 +162,7 @@ public class AdminQuizActivity extends AppCompatActivity {
         if (mode == CREATE) {
             finish();
         } else {
-            database.quizDao().deleteQuiz(currentQuiz);
-            database.questionDao().deleteQuestions(currentQuiz.getId());
+            firebaseQuiz.delete(currentQuiz.getId());
         }
 
         LoginActivity.activeQuiz = null;
@@ -210,7 +205,7 @@ public class AdminQuizActivity extends AppCompatActivity {
     private boolean quizIsValid() {
         String message;
 
-        if (questionsF.size() < 1) {
+        if (questions.size() < 1) {
             message = "Je moet minstens een vraag toevoegen voor je de quiz op kan slaan.";
             displayWarningDialog(message);
             return false;
@@ -237,21 +232,12 @@ public class AdminQuizActivity extends AppCompatActivity {
     }
 
     private void saveQuiz() {
-        currentQuizF.setTitle(etQuizName.getText().toString());
+        currentQuiz.setTitle(etQuizName.getText().toString());
 
         if (mode == CREATE) {
-            new FirebaseQuiz().insertQuiz(currentQuizF, questionsF);
-
+            firebaseQuiz.insert(currentQuiz, questions);
         } else {
-            currentQuiz.setTitle(etQuizName.getText().toString());
-
-            for (Question question : questions) {
-                question.setQuizId(currentQuiz.getId());
-            }
-
-            database.quizDao().updateQuiz(currentQuiz);
-            database.questionDao().deleteQuestions(currentQuiz.getId());
-            database.questionDao().addQuestions(questions);
+            firebaseQuiz.set(currentQuiz, questions);
         }
 
         finish();
@@ -265,12 +251,12 @@ public class AdminQuizActivity extends AppCompatActivity {
                 Bundle data = msg.getData();
                 if (!data.isEmpty()) {
                     if (data.getString("type").equals("getQuiz")) {
-                        currentQuizF = data.getParcelable("quiz");
-                        if (currentQuizF != null) {
-                            etQuizName.setText(currentQuizF.getTitle());
+                        currentQuiz = data.getParcelable("quiz");
+                        if (currentQuiz != null) {
+                            etQuizName.setText(currentQuiz.getTitle());
                         }
                     } else if (data.getString("type").equals("getQuestions")) {
-                        questionsF = data.getParcelableArrayList("questions");
+                        questions = data.getParcelableArrayList("questions");
                         fillRecyclerViews();
                     } else if (data.getString("type").equals("editQuestion")) {
                         showEditQuestionUI(data);
@@ -282,7 +268,7 @@ public class AdminQuizActivity extends AppCompatActivity {
 
     private void showEditQuestionUI(Bundle data) {
         questionSelected = true;
-        currentQuestionID = data.getInt("id");
+        currentQuestionID = data.getString("id");
 
         btnDeleteQuestion.setVisibility(View.VISIBLE);
         tvPlus.setVisibility(View.VISIBLE);
@@ -326,7 +312,7 @@ public class AdminQuizActivity extends AppCompatActivity {
         emptyInputFields();
         etQuestion.setText("");
 
-        questionsF.add(new QuestionF(-1, text, Question.convertAnswerList(answers), correntAnswer));
+        questions.add(new Question(-1, text, Question.convertAnswerList(answers), correntAnswer));
         adapter.notifyDataSetChanged();
     }
 
@@ -338,7 +324,7 @@ public class AdminQuizActivity extends AppCompatActivity {
         etQuestion.setText("");
 
         for (Question question : questions) {
-            if (question.getId() == currentQuestionID) {
+            if (question.getId().equals(currentQuestionID)) {
                 question.setAnswers(Question.convertAnswerList(answers));
                 question.setCorrectAnswer(correntAnswer);
                 question.setText(text);
@@ -366,7 +352,7 @@ public class AdminQuizActivity extends AppCompatActivity {
         RecyclerView rvQuestions = findViewById(R.id.rvQuestions);
         rvQuestions.setHasFixedSize(true);
         rvQuestions.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new QuestionAdapter(questionsF);
+        adapter = new QuestionAdapter(questions);
         rvQuestions.setAdapter(adapter);
     }
 

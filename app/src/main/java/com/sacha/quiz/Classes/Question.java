@@ -1,35 +1,45 @@
 package com.sacha.quiz.Classes;
 
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.ForeignKey;
-import androidx.room.PrimaryKey;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static androidx.room.ForeignKey.CASCADE;
+public class Question implements Parcelable {
+    public static final Creator<Question> CREATOR = new Creator<Question>() {
+        @Override
+        public Question createFromParcel(Parcel in) {
+            return new Question(in);
+        }
 
-@Entity(tableName = "questions",
-        foreignKeys = @ForeignKey(entity = Quiz.class,
-                parentColumns = "id",
-                childColumns = "quizId",
-                onDelete = CASCADE)
-)
-public class Question {
-    @PrimaryKey(autoGenerate = true)
-    private int id;
-    @ColumnInfo(index = true)
-    private int quizId;
+        @Override
+        public Question[] newArray(int size) {
+            return new Question[size];
+        }
+    };
+    private String id;
+    private int quizID;
     private String text;
     private String answers;
     private String correctAnswer;
 
-    public Question(int quizId, String text, String answers, String correctAnswer) {
-        this.quizId = quizId;
+    public Question() {
+    }
+
+    public Question(int quizID, String text, String answers, String correctAnswer) {
+        this.quizID = quizID;
         this.text = text;
         this.answers = answers;
         this.correctAnswer = correctAnswer;
+    }
+
+    private Question(Parcel in) {
+        id = in.readString();
+        quizID = in.readInt();
+        text = in.readString();
+        answers = in.readString();
+        correctAnswer = in.readString();
     }
 
     public static String convertAnswerList(List<String> answers) {
@@ -48,20 +58,20 @@ public class Question {
         return Arrays.asList(answers.split(";"));
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public int getQuizId() {
-        return quizId;
+    public int getQuizID() {
+        return quizID;
     }
 
-    public void setQuizId(int quizId) {
-        this.quizId = quizId;
+    public void setQuizID(int quizID) {
+        this.quizID = quizID;
     }
 
     public String getText() {
@@ -86,5 +96,19 @@ public class Question {
 
     public void setCorrectAnswer(String correctAnswer) {
         this.correctAnswer = correctAnswer;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(id);
+        parcel.writeInt(quizID);
+        parcel.writeString(text);
+        parcel.writeString(answers);
+        parcel.writeString(correctAnswer);
     }
 }

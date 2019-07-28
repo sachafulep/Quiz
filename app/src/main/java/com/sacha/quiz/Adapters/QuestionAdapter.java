@@ -6,20 +6,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.sacha.quiz.AdminQuizActivity;
 import com.sacha.quiz.Classes.Question;
-import com.sacha.quiz.FirebaseClasses.QuestionF;
 import com.sacha.quiz.R;
 
 import java.util.List;
 
 public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHolder> {
-    private List<QuestionF> questions;
+    private List<Question> questions;
 
-    public QuestionAdapter(List<QuestionF> questions) {
+    public QuestionAdapter(List<Question> questions) {
         this.questions = questions;
     }
 
@@ -34,7 +31,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
     @Override
     public void onBindViewHolder(QuestionAdapter.ViewHolder holder, int position) {
         String text = "";
-        QuestionF question = questions.get(position);
+        Question question = questions.get(position);
         text += question.getText();
         holder.tvTitle.setText(text);
         holder.question = questions.get(position);
@@ -45,11 +42,11 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
         return questions.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView tvTitle;
-        public QuestionF question;
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView tvTitle;
+        Question question;
 
-        public ViewHolder(View rootView) {
+        ViewHolder(View rootView) {
             super(rootView);
             tvTitle = rootView.findViewById(R.id.tvName);
 
@@ -61,7 +58,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
                     List<String> answers = question.getAnswerList();
 
                     bdl.putString("type", "editQuestion");
-                    bdl.putInt("id", question.getId());
+                    bdl.putString("id", question.getId());
                     bdl.putString("text", question.getText());
 
                     for (int i = 0; i < answers.size(); i++) {

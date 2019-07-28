@@ -6,20 +6,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.sacha.quiz.AdminActivity;
 import com.sacha.quiz.Classes.Quiz;
-import com.sacha.quiz.FirebaseClasses.QuizF;
 import com.sacha.quiz.R;
 
 import java.util.List;
 
 public class QuizAdapter extends RecyclerView.Adapter<QuizAdapter.ViewHolder> {
-    private List<QuizF> quizzes;
+    private List<Quiz> quizzes;
 
-    public QuizAdapter(List<QuizF> quizzes) {
+    public QuizAdapter(List<Quiz> quizzes) {
         this.quizzes = quizzes;
     }
 
@@ -34,7 +31,7 @@ public class QuizAdapter extends RecyclerView.Adapter<QuizAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(QuizAdapter.ViewHolder holder, int position) {
         String name = "";
-        QuizF quiz = quizzes.get(position);
+        Quiz quiz = quizzes.get(position);
         name += quiz.getTitle();
         holder.tvTitle.setText(name);
         holder.quiz = quizzes.get(position);
@@ -46,10 +43,10 @@ public class QuizAdapter extends RecyclerView.Adapter<QuizAdapter.ViewHolder> {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView tvTitle;
-        public QuizF quiz;
+        TextView tvTitle;
+        public Quiz quiz;
 
-        public ViewHolder(View rootView) {
+        ViewHolder(View rootView) {
             super(rootView);
             tvTitle = rootView.findViewById(R.id.tvName);
 
@@ -58,6 +55,7 @@ public class QuizAdapter extends RecyclerView.Adapter<QuizAdapter.ViewHolder> {
                 public void onClick(View view) {
                     Message msg = Message.obtain();
                     Bundle bdl = new Bundle();
+                    bdl.putString("type", "editQuiz");
                     bdl.putInt("id", quiz.getId());
                     msg.setData(bdl);
                     AdminActivity.handler.sendMessage(msg);

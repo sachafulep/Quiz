@@ -1,43 +1,34 @@
 package com.sacha.quiz.Classes;
 
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.ForeignKey;
-import androidx.room.PrimaryKey;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-import static androidx.room.ForeignKey.CASCADE;
+public class Score implements Parcelable {
+    public static final Creator<Score> CREATOR = new Creator<Score>() {
+        @Override
+        public Score createFromParcel(Parcel in) {
+            return new Score(in);
+        }
 
-@Entity(tableName = "scores",
-        foreignKeys = {@ForeignKey(entity = Quiz.class,
-                parentColumns = "id",
-                childColumns = "quizID",
-                onDelete = CASCADE), @ForeignKey(entity = Player.class,
-                parentColumns = "id",
-                childColumns = "playerID",
-                onDelete = CASCADE)}
-)
-public class Score {
-    @PrimaryKey
-    private int id;
-    @ColumnInfo(index = true)
+        @Override
+        public Score[] newArray(int size) {
+            return new Score[size];
+        }
+    };
     private int quizID;
-    @ColumnInfo(index = true)
-    private int playerID;
+    private String playerName;
     private int score;
 
-    public Score(int id, int quizID, int playerID, int score) {
-        this.id = id;
+    public Score(int quizID, String playerName, int score) {
         this.quizID = quizID;
-        this.playerID = playerID;
+        this.playerName = playerName;
         this.score = score;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+    private Score(Parcel in) {
+        quizID = in.readInt();
+        playerName = in.readString();
+        score = in.readInt();
     }
 
     public int getQuizID() {
@@ -48,12 +39,12 @@ public class Score {
         this.quizID = quizID;
     }
 
-    public int getPlayerID() {
-        return playerID;
+    public String getPlayerName() {
+        return playerName;
     }
 
-    public void setPlayerID(int playerID) {
-        this.playerID = playerID;
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
     }
 
     public int getScore() {
@@ -62,5 +53,17 @@ public class Score {
 
     public void setScore(int score) {
         this.score = score;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(quizID);
+        parcel.writeString(playerName);
+        parcel.writeInt(score);
     }
 }

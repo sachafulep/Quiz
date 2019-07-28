@@ -4,29 +4,29 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.sacha.quiz.Adapters.ScoreAdapter;
-import com.sacha.quiz.Classes.Player;
 import com.sacha.quiz.Classes.Quiz;
-import com.sacha.quiz.Firebase.FirebaseQuiz;
-
-import java.util.List;
+import com.sacha.quiz.Firebase.FirebasePlayer;
+import com.sacha.quiz.Firebase.FirebaseScore;
 
 public class LoginActivity extends AppCompatActivity {
+    public static Handler handler;
     static Quiz activeQuiz;
+    private Button btnSubmit;
+    private Button btnAdmin;
     private EditText etFirstName;
     private EditText etLastName;
+    private FirebasePlayer firebasePlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,22 +36,26 @@ public class LoginActivity extends AppCompatActivity {
 
         etFirstName = findViewById(R.id.etFirstName);
         etLastName = findViewById(R.id.etLastName);
-        Button btnSubmit = findViewById(R.id.btnSubmit);
-        Button btnAdmin = findViewById(R.id.btnAdmin);
+        btnSubmit = findViewById(R.id.btnSubmit);
+        btnAdmin = findViewById(R.id.btnAdmin);
+
+        firebasePlayer = new FirebasePlayer();
 
         fillRecyclerView();
+        setupMsgHandler();
+        setOnClickListeners();
+    }
 
+    private void setOnClickListeners() {
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (activeQuiz == null) {
                     showErrorDialog(getString(R.string.error_select_quiz));
-                } else if (playerNameInvalid()) {
+                } else if (playerNameNotFilledIn()) {
                     showErrorDialog(getString(R.string.error_invalid_name));
-                } else if (playerHasAlreadyTakenThisQuiz()) {
-                    showErrorDialog(getString(R.string.error_already_taken));
                 } else {
-                    startQuiz();
+                    firebasePlayer.checkIfExists(getFullName());
                 }
             }
         });
@@ -67,29 +71,45 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private boolean playerNameInvalid() {
+    private String getFirstName() {
+        String firstName = etFirstName.getText().toString().toLowerCase().trim();
+        return firstName.substring(0, 1).toUpperCase() + firstName.substring(1);
+    }
+
+    private String getLastName() {
+        String lastName = etLastName.getText().toString().toLowerCase().trim();
+        return lastName.substring(0, 1).toUpperCase() + lastName.substring(1);
+    }
+
+    private String getFullName() {
+        String firstName = etFirstName.getText().toString().toLowerCase().trim();
+        String lastName = etLastName.getText().toString().toLowerCase().trim();
+
+        String firstNameCapitalised = firstName.substring(0, 1).toUpperCase() + firstName.substring(1);
+        String lastNameCapitalised = lastName.substring(0, 1).toUpperCase() + lastName.substring(1);
+
+        return firstNameCapitalised + " " + lastNameCapitalised;
+    }
+
+    private boolean playerNameNotFilledIn() {
         if (etFirstName.getText().toString().isEmpty()) {
             return true;
-        } else return etLastName.getText().toString().isEmpty();
-
+        } else {
+            return etLastName.getText().toString().isEmpty();
+        }
     }
 
     private void fillRecyclerView() {
-        RecyclerView rvScores = findViewById(R.id.rvScores);
-        rvScores.setHasFixedSize(true);
-        rvScores.setLayoutManager(new LinearLayoutManager(this));
-        List<Player> players = MainActivity.database.playerDao().getAll();
-        ScoreAdapter adapter = new ScoreAdapter(players);
-        rvScores.setAdapter(adapter);
+//        RecyclerView rvScores = findViewById(R.id.rvScores);
+//        rvScores.setHasFixedSize(true);
+//        rvScores.setLayoutManager(new LinearLayoutManager(this));
+//        List<Player> players = MainActivity.database.playerDao().getAll();
+//        ScoreAdapter adapter = new ScoreAdapter(players);
+//        rvScores.setAdapter(adapter);
     }
 
     private boolean playerHasAlreadyTakenThisQuiz() {
-        String firstName = etFirstName.getText().toString();
-        String lastName = etLastName.getText().toString();
-
-        Player player = MainActivity.database.playerDao().get(firstName, lastName);
-
-        return player != null && MainActivity.database.scoreDao().get(activeQuiz.getId(), player.getId()) != null;
+        return false;
     }
 
     private void showErrorDialog(String message) {
@@ -106,21 +126,10 @@ public class LoginActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void startQuiz() {
-        String firstName = etFirstName.getText().toString();
-        String lastName = etLastName.getText().toString();
-
-        Player player = MainActivity.database.playerDao().get(firstName, lastName);
-
-        if (player == null) {
-            int id = MainActivity.database.playerDao().getHighestID() + 1;
-            player = new Player(id, firstName, lastName);
-            MainActivity.database.playerDao().add(player);
-        }
-
+    private void startQuiz(String fullName) {
         Intent intent = new Intent(LoginActivity.this, QuizActivity.class);
 
-        intent.putExtra("playerID", player.getId());
+        intent.putExtra("playerName", fullName);
         intent.putExtra("quizID", activeQuiz.getId());
 
         etFirstName.setText("");
@@ -156,6 +165,35 @@ public class LoginActivity extends AppCompatActivity {
 
         AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    private void setupMsgHandler() {
+        handler = new Handler(Looper.getMainLooper()) {
+
+            @Override
+            public void handleMessage(Message msg) {
+                Bundle data = msg.getData();
+                if (!data.isEmpty()) {
+                    switch (data.getString("type")) {
+                        case "playerExists":
+                            new FirebaseScore().checkIfPlayerHasTakenQuiz(activeQuiz.getId(), getFullName());
+                            break;
+                        case "playerDoesNotExist":
+                            firebasePlayer.insert(getFirstName(), getLastName());
+                            break;
+                        case "insertPlayer":
+                            startQuiz(getFullName());
+                            break;
+                        case "hasTakenQuiz":
+                            showErrorDialog(getString(R.string.error_already_taken));
+                            break;
+                        case "hasNotTakenQuiz":
+                            startQuiz(getFullName());
+                            break;
+                    }
+                }
+            }
+        };
     }
 
     @Override

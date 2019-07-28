@@ -11,23 +11,23 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.*;
 import com.sacha.quiz.AdminActivity;
 import com.sacha.quiz.AdminQuizActivity;
-import com.sacha.quiz.FirebaseClasses.QuestionF;
-import com.sacha.quiz.FirebaseClasses.QuizF;
+import com.sacha.quiz.Classes.Question;
+import com.sacha.quiz.Classes.Quiz;
 import com.sacha.quiz.MainActivity;
 
 import java.util.ArrayList;
 
 public class FirebaseQuiz {
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
     String quizID;
 
-    public void insertQuiz(final QuizF quiz, final ArrayList<QuestionF> questions) {
+    public void insert(final Quiz quiz, final ArrayList<Question> questions) {
         db.collection("quizzes")
                 .orderBy("id", Query.Direction.DESCENDING).limit(1).get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        String quizID = "";
+                        String quizID;
 
                         if (queryDocumentSnapshots.size() < 1) {
                             quizID = "0";
@@ -36,22 +36,25 @@ public class FirebaseQuiz {
                             quizID = Integer.toString(Integer.parseInt(temp) + 1);
                         }
 
-                        insert(quizID, quiz, questions);
+                        insertQuizWithID(quizID, quiz, questions);
                     }
                 });
     }
 
-    private void insert(String quizID, final QuizF quiz, ArrayList<QuestionF> questions) {
+    private void insertQuizWithID(String quizID, final Quiz quiz, ArrayList<Question> questions) {
         WriteBatch batch = db.batch();
 
         DocumentReference quizRef = db.collection("quizzes").document(quizID);
         quiz.setId(Integer.parseInt(quizID));
         batch.set(quizRef, quiz);
 
-        for (QuestionF question : questions) {
+        for (int i = 0; i < questions.size(); i++) {
+            Question question = questions.get(i);
             question.setQuizID(Integer.parseInt(quizID));
+            String idString = quizID + "-" + i;
+            question.setId(idString);
             batch.set(db.collection("questions")
-                    .document(Integer.toString(question.getId())), question);
+                    .document(question.getId()), question);
         }
 
         batch.commit().addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -59,6 +62,7 @@ public class FirebaseQuiz {
             public void onComplete(@NonNull Task<Void> task) {
                 Message msg = Message.obtain();
                 Bundle bdl = new Bundle();
+                bdl.putString("type", "addQuiz");
                 bdl.putParcelable("quiz", quiz);
                 msg.setData(bdl);
                 AdminActivity.handler.sendMessage(msg);
@@ -75,7 +79,7 @@ public class FirebaseQuiz {
                         Message msg = Message.obtain();
                         Bundle bdl = new Bundle();
                         bdl.putString("type", "getQuiz");
-                        bdl.putParcelable("quiz", documentSnapshot.toObject(QuizF.class));
+                        bdl.putParcelable("quiz", documentSnapshot.toObject(Quiz.class));
                         msg.setData(bdl);
                         AdminQuizActivity.handler.sendMessage(msg);
                     }
@@ -97,11 +101,12 @@ public class FirebaseQuiz {
                         if (task.isSuccessful()) {
                             Message msg = Message.obtain();
                             Bundle bdl = new Bundle();
-                            ArrayList<QuizF> quizzes = new ArrayList<>();
+                            bdl.putString("type", "getQuizzes");
+                            ArrayList<Quiz> quizzes = new ArrayList<>();
 
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(MainActivity.TAG, document.getId() + " => " + document.getData());
-                                quizzes.add(document.toObject(QuizF.class));
+                                quizzes.add(document.toObject(Quiz.class));
                             }
 
                             bdl.putParcelableArrayList("quizzes", quizzes);
@@ -118,11 +123,50 @@ public class FirebaseQuiz {
 
     }
 
-    public void delete() {
+    public void delete(final int quizID) {
+        final WriteBatch batch = db.batch();
+        String id = Integer.toString(quizID);
 
+        batch.delete(db.collection("quizzes").document(id));
+
+        db.collection("questions").whereEqualTo("quizID", quizID)
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (QueryDocumentSnapshot snapshot : queryDocumentSnapshots) {
+                    batch.delete(snapshot.getReference());
+                }
+
+                batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Message msg = Message.obtain();
+                        Bundle bdl = new Bundle();
+                        bdl.putString("type", "deleteQuiz");
+                        bdl.putInt("quizID", quizID);
+                        msg.setData(bdl);
+                        AdminActivity.handler.sendMessage(msg);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void clear() {
 
+    }
+
+    public void set(Quiz quiz, ArrayList<Question> questions) {
+        insertQuizWithID(Integer.toString(quiz.getId()), quiz, questions);
     }
 }

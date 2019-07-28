@@ -12,30 +12,23 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.sacha.quiz.Adapters.PlayerAdapter;
 import com.sacha.quiz.Adapters.QuizAdapter;
-import com.sacha.quiz.Classes.Player;
-import com.sacha.quiz.Database.Database;
+import com.sacha.quiz.Classes.Quiz;
 import com.sacha.quiz.Firebase.FirebaseQuiz;
-import com.sacha.quiz.FirebaseClasses.QuizF;
 
 import java.util.List;
 
 public class AdminActivity extends AppCompatActivity {
     public static Handler handler;
-    Database database;
-    QuizAdapter quizAdapter;
-    PlayerAdapter playerAdapter;
-    List<QuizF> quizzes;
-    List<Player> players;
+    private QuizAdapter quizAdapter;
+    private List<Quiz> quizzes;
+    List<String> players;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
         setToolbar();
-
-        database = Database.getInstance();
 
         setOnClickListeners();
         setupMsgHandler();
@@ -94,10 +87,6 @@ public class AdminActivity extends AppCompatActivity {
                 .setNegativeButton("Ja, verwijder alles.", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int i) {
-                        database.scoreDao().clear();
-                        database.questionDao().clear();
-                        database.quizDao().clear();
-                        database.playerDao().clear();
 
                         dialog.dismiss();
                     }
@@ -107,76 +96,80 @@ public class AdminActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    void setupMsgHandler() {
+    private void setupMsgHandler() {
         handler = new Handler(Looper.getMainLooper()) {
 
             @Override
             public void handleMessage(Message msg) {
                 Bundle data = msg.getData();
                 if (!data.isEmpty()) {
-                    if (data.containsKey("quizzes")) {
-                        quizzes = data.getParcelableArrayList("quizzes");
-                        fillRecyclerViews(quizzes);
-                    } else if (data.containsKey("quiz")) {
-                        QuizF quiz = data.getParcelable("quiz");
-                        if (quizzes.contains(quiz)) {
-                            quizzes.set(quizzes.indexOf(quiz), quiz);
-                        } else {
-                            quizzes.add(quiz);
-                        }
-                        quizAdapter.notifyDataSetChanged();
-                    } else {
-                        Intent intent = new Intent(AdminActivity.this, AdminQuizActivity.class);
-                        intent.putExtra("mode", AdminQuizActivity.EDIT);
-                        intent.putExtra("id", data.getInt("id"));
-                        startActivity(intent);
+                    switch (data.getString("type")) {
+                        case "getQuizzes":
+                            quizzes = data.getParcelableArrayList("quizzes");
+                            fillRecyclerViews(quizzes);
+                            break;
+                        case "addQuiz":
+                            Quiz quiz = data.getParcelable("quiz");
+                            if (quizzes.contains(quiz)) {
+                                quizzes.set(quizzes.indexOf(quiz), quiz);
+                            } else {
+                                quizzes.add(quiz);
+                            }
+                            quizAdapter.notifyDataSetChanged();
+                            break;
+                        case "deleteQuiz":
+                            Quiz temp = null;
+
+                            for (Quiz q : quizzes) {
+                                if (q.getId() == data.getInt("quizID", -1)) {
+                                    temp = q;
+                                    break;
+                                }
+                            }
+
+                            quizzes.remove(temp);
+                            quizAdapter.notifyDataSetChanged();
+                            break;
+                        case "editQuiz":
+                            Intent intent = new Intent(AdminActivity.this, AdminQuizActivity.class);
+                            intent.putExtra("mode", AdminQuizActivity.EDIT);
+                            intent.putExtra("id", data.getInt("id"));
+                            startActivity(intent);
+                            break;
                     }
                 }
             }
         };
     }
 
-//    private void fillRecyclerViews() {
-//        RecyclerView rvQuizzes = findViewById(R.id.rvQuizzes);
-//        RecyclerView rvPlayers = findViewById(R.id.rvPlayers);
-//        rvQuizzes.setHasFixedSize(true);
-//        rvPlayers.setHasFixedSize(true);
-//        rvQuizzes.setLayoutManager(new LinearLayoutManager(this));
-//        rvPlayers.setLayoutManager(new LinearLayoutManager(this));
-//        quizzes = database.quizDao().getAll();
-//        players = database.playerDao().getAll();
-//        quizAdapter = new QuizAdapter(quizzes);
-//        playerAdapter = new PlayerAdapter(players);
-//        rvQuizzes.setAdapter(quizAdapter);
-//        rvPlayers.setAdapter(playerAdapter);
-//    }
+    private void fillRecyclerViews(List<Quiz> quizzes) {
+        RecyclerView rvQuizzes = findViewById(R.id.rvQuizzes);
+        rvQuizzes.setHasFixedSize(true);
+        rvQuizzes.setLayoutManager(new LinearLayoutManager(this));
+        quizAdapter = new QuizAdapter(quizzes);
+        rvQuizzes.setAdapter(quizAdapter);
+    }
 
-        private void fillRecyclerViews (List < QuizF > quizzes) {
-            RecyclerView rvQuizzes = findViewById(R.id.rvQuizzes);
-            rvQuizzes.setHasFixedSize(true);
-            rvQuizzes.setLayoutManager(new LinearLayoutManager(this));
-            quizAdapter = new QuizAdapter(quizzes);
-            rvQuizzes.setAdapter(quizAdapter);
-        }
-
-        private void setToolbar () {
-            setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-            ActionBar actionBar = getSupportActionBar();
-            if (actionBar != null) {
-                actionBar.setDisplayHomeAsUpEnabled(true);
-                actionBar.setDisplayShowHomeEnabled(true);
-                actionBar.setTitle("");
-            }
-        }
-
-        @Override
-        protected void onResume () {
-            super.onResume();
-        }
-
-        @Override
-        public boolean onSupportNavigateUp () {
-            onBackPressed();
-            return true;
+    private void setToolbar() {
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayShowHomeEnabled(true);
+            actionBar.setTitle("");
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
+}

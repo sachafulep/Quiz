@@ -2,37 +2,37 @@ package com.sacha.quiz;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.sacha.quiz.Classes.Question;
 import com.sacha.quiz.Classes.Score;
-import com.sacha.quiz.Database.Database;
+import com.sacha.quiz.Firebase.FirebaseQuestion;
+import com.sacha.quiz.Firebase.FirebaseScore;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class QuizActivity extends AppCompatActivity {
-    int playerID;
-    int quizID;
-    List<Question> questions;
+    public static Handler handler;
+    private String playerName;
+    private int quizID;
+    private List<Question> questions;
+    private TextView tvQuestion;
+    private Button btnSubmit;
+    private List<Button> answerButtons;
 
-    TextView tvQuestion;
-    Button btnSubmit;
-    List<Button> answerButtons;
+    private Question currentQuestion;
+    private String currentAnswer;
 
-    Question currentQuestion;
-    String currentAnswer;
-
-    Database database = Database.getInstance();
-
-    int index = 0;
-    int score = 0;
+    private int index = 0;
+    private int score = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,10 +41,15 @@ public class QuizActivity extends AppCompatActivity {
         tvQuestion = findViewById(R.id.tvQuestion);
         btnSubmit = findViewById(R.id.btnSubmit);
 
-        playerID = getIntent().getIntExtra("playerID", -1);
+        playerName = getIntent().getStringExtra("playerName");
         quizID = getIntent().getIntExtra("quizID", -1);
-        questions = database.questionDao().getQuestions(quizID);
 
+        new FirebaseQuestion().getQuizQuestions(quizID, "Quiz");
+
+        setupMsgHandler();
+    }
+
+    private void startQuiz() {
         setUpButtons();
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,10 +59,9 @@ public class QuizActivity extends AppCompatActivity {
         });
 
         updateQuestion();
-        index++;
     }
 
-    public void updateQuestion() {
+    private void updateQuestion() {
         currentQuestion = questions.get(index);
         tvQuestion.setText(currentQuestion.getText());
         List<String> answers = currentQuestion.getAnswerList();
@@ -73,9 +77,12 @@ public class QuizActivity extends AppCompatActivity {
                 button.setText("");
             }
         }
+
+        currentAnswer = null;
+        index++;
     }
 
-    void checkAnswer() {
+    private void checkAnswer() {
         if (currentAnswer != null) {
             if (currentAnswer.equals(currentQuestion.getCorrectAnswer())) {
                 score++;
@@ -83,8 +90,6 @@ public class QuizActivity extends AppCompatActivity {
 
             if (questions.size() > index) {
                 updateQuestion();
-                currentAnswer = null;
-                index++;
             } else {
                 showScoreDialog();
             }
@@ -102,8 +107,7 @@ public class QuizActivity extends AppCompatActivity {
 
         builder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                int scoreID = database.scoreDao().getHighestID() + 1;
-                database.scoreDao().add(new Score(scoreID, quizID, playerID, score));
+                new FirebaseScore().insert(new Score(quizID, playerName, score));
                 finish();
                 dialog.dismiss();
             }
@@ -124,6 +128,22 @@ public class QuizActivity extends AppCompatActivity {
             button.setOnClickListener(listener);
             button.setBackgroundColor(getColor(R.color.colorPrimary));
         }
+    }
+
+    private void setupMsgHandler() {
+        handler = new Handler(Looper.getMainLooper()) {
+
+            @Override
+            public void handleMessage(Message msg) {
+                Bundle data = msg.getData();
+                if (!data.isEmpty()) {
+                    if (data.getString("type").equals("getQuestions")) {
+                        questions = data.getParcelableArrayList("questions");
+                        startQuiz();
+                    }
+                }
+            }
+        };
     }
 
     class AnswerListener implements View.OnClickListener {
