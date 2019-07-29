@@ -15,9 +15,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.sacha.quiz.Adapters.HighScoreAdapter;
 import com.sacha.quiz.Classes.Quiz;
 import com.sacha.quiz.Firebase.FirebasePlayer;
 import com.sacha.quiz.Firebase.FirebaseScore;
+
+import java.util.List;
 
 public class LoginActivity extends AppCompatActivity {
     public static Handler handler;
@@ -41,9 +46,10 @@ public class LoginActivity extends AppCompatActivity {
 
         firebasePlayer = new FirebasePlayer();
 
-        fillRecyclerView();
         setupMsgHandler();
         setOnClickListeners();
+
+        firebasePlayer.getHighScores();
     }
 
     private void setOnClickListeners() {
@@ -99,17 +105,12 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void fillRecyclerView() {
-//        RecyclerView rvScores = findViewById(R.id.rvScores);
-//        rvScores.setHasFixedSize(true);
-//        rvScores.setLayoutManager(new LinearLayoutManager(this));
-//        List<Player> players = MainActivity.database.playerDao().getAll();
-//        ScoreAdapter adapter = new ScoreAdapter(players);
-//        rvScores.setAdapter(adapter);
-    }
-
-    private boolean playerHasAlreadyTakenThisQuiz() {
-        return false;
+    private void fillRecyclerView(List<String> names, List<Integer> scores) {
+        RecyclerView rvScores = findViewById(R.id.rvScores);
+        rvScores.setHasFixedSize(true);
+        rvScores.setLayoutManager(new LinearLayoutManager(this));
+        HighScoreAdapter adapter = new HighScoreAdapter(names, scores);
+        rvScores.setAdapter(adapter);
     }
 
     private void showErrorDialog(String message) {
@@ -190,6 +191,11 @@ public class LoginActivity extends AppCompatActivity {
                         case "hasNotTakenQuiz":
                             startQuiz(getFullName());
                             break;
+                        case "getHighScores":
+                            fillRecyclerView(data.getStringArrayList("names"),
+                                    data.getIntegerArrayList("scores")
+                            );
+                            break;
                     }
                 }
             }
@@ -199,8 +205,6 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-        fillRecyclerView();
 
         TextView tvCurrentQuiz = findViewById(R.id.tvCurrentQuiz);
 

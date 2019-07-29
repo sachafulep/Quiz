@@ -12,15 +12,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.sacha.quiz.Adapters.PlayerAdapter;
 import com.sacha.quiz.Adapters.QuizAdapter;
 import com.sacha.quiz.Classes.Quiz;
+import com.sacha.quiz.Firebase.FirebasePlayer;
 import com.sacha.quiz.Firebase.FirebaseQuiz;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AdminActivity extends AppCompatActivity {
     public static Handler handler;
     private QuizAdapter quizAdapter;
+    private PlayerAdapter playerAdapter;
     private List<Quiz> quizzes;
     List<String> players;
 
@@ -33,7 +37,11 @@ public class AdminActivity extends AppCompatActivity {
         setOnClickListeners();
         setupMsgHandler();
 
+        quizzes = new ArrayList<>();
+        players = new ArrayList<>();
+
         new FirebaseQuiz().getAll();
+        new FirebasePlayer().getAll();
     }
 
     private void setOnClickListeners() {
@@ -96,6 +104,29 @@ public class AdminActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private void fillRecyclerViews() {
+        RecyclerView rvQuizzes = findViewById(R.id.rvQuizzes);
+        RecyclerView rvPlayers = findViewById(R.id.rvPlayers);
+        rvQuizzes.setHasFixedSize(true);
+        rvPlayers.setHasFixedSize(true);
+        rvQuizzes.setLayoutManager(new LinearLayoutManager(this));
+        rvPlayers.setLayoutManager(new LinearLayoutManager(this));
+        quizAdapter = new QuizAdapter(quizzes);
+        playerAdapter = new PlayerAdapter(players);
+        rvQuizzes.setAdapter(quizAdapter);
+        rvPlayers.setAdapter(playerAdapter);
+    }
+
+    private void setToolbar() {
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayShowHomeEnabled(true);
+            actionBar.setTitle("");
+        }
+    }
+
     private void setupMsgHandler() {
         handler = new Handler(Looper.getMainLooper()) {
 
@@ -106,7 +137,7 @@ public class AdminActivity extends AppCompatActivity {
                     switch (data.getString("type")) {
                         case "getQuizzes":
                             quizzes = data.getParcelableArrayList("quizzes");
-                            fillRecyclerViews(quizzes);
+                            fillRecyclerViews();
                             break;
                         case "addQuiz":
                             Quiz quiz = data.getParcelable("quiz");
@@ -130,6 +161,10 @@ public class AdminActivity extends AppCompatActivity {
                             quizzes.remove(temp);
                             quizAdapter.notifyDataSetChanged();
                             break;
+                        case "getPlayers":
+                            players = data.getStringArrayList("players");
+                            fillRecyclerViews();
+                            break;
                         case "editQuiz":
                             Intent intent = new Intent(AdminActivity.this, AdminQuizActivity.class);
                             intent.putExtra("mode", AdminQuizActivity.EDIT);
@@ -140,24 +175,6 @@ public class AdminActivity extends AppCompatActivity {
                 }
             }
         };
-    }
-
-    private void fillRecyclerViews(List<Quiz> quizzes) {
-        RecyclerView rvQuizzes = findViewById(R.id.rvQuizzes);
-        rvQuizzes.setHasFixedSize(true);
-        rvQuizzes.setLayoutManager(new LinearLayoutManager(this));
-        quizAdapter = new QuizAdapter(quizzes);
-        rvQuizzes.setAdapter(quizAdapter);
-    }
-
-    private void setToolbar() {
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setDisplayShowHomeEnabled(true);
-            actionBar.setTitle("");
-        }
     }
 
     @Override

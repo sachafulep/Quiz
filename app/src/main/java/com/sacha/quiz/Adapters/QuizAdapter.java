@@ -11,6 +11,7 @@ import com.sacha.quiz.AdminActivity;
 import com.sacha.quiz.Classes.Quiz;
 import com.sacha.quiz.R;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 public class QuizAdapter extends RecyclerView.Adapter<QuizAdapter.ViewHolder> {
@@ -20,6 +21,7 @@ public class QuizAdapter extends RecyclerView.Adapter<QuizAdapter.ViewHolder> {
         this.quizzes = quizzes;
     }
 
+    @Nonnull
     @Override
     public QuizAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View rootView = LayoutInflater.from(parent.getContext())
@@ -30,10 +32,7 @@ public class QuizAdapter extends RecyclerView.Adapter<QuizAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(QuizAdapter.ViewHolder holder, int position) {
-        String name = "";
-        Quiz quiz = quizzes.get(position);
-        name += quiz.getTitle();
-        holder.tvTitle.setText(name);
+        holder.tvName.setText(quizzes.get(position).getTitle());
         holder.quiz = quizzes.get(position);
     }
 
@@ -43,12 +42,12 @@ public class QuizAdapter extends RecyclerView.Adapter<QuizAdapter.ViewHolder> {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle;
+        TextView tvName;
         public Quiz quiz;
 
         ViewHolder(View rootView) {
             super(rootView);
-            tvTitle = rootView.findViewById(R.id.tvName);
+            tvName = rootView.findViewById(R.id.tvName);
 
             rootView.setOnClickListener(new View.OnClickListener() {
                 @Override
