@@ -152,7 +152,7 @@ public class AdminQuizActivity extends AppCompatActivity {
         findViewById(R.id.btnSetActiveQuiz).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                LoginActivity.activeQuiz = currentQuiz;
+                LoginActivity.currentQuiz = currentQuiz;
                 findViewById(R.id.ivActive).setVisibility(View.VISIBLE);
             }
         });
@@ -165,7 +165,7 @@ public class AdminQuizActivity extends AppCompatActivity {
             firebaseQuiz.delete(currentQuiz.getId());
         }
 
-        LoginActivity.activeQuiz = null;
+        LoginActivity.currentQuiz = null;
 
         finish();
     }
@@ -374,7 +374,7 @@ public class AdminQuizActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.dismiss();
                         if (mode == CREATE) {
-                            LoginActivity.activeQuiz = null;
+                            LoginActivity.currentQuiz = null;
                         }
 
                         onBackPressed();

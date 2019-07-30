@@ -30,4 +30,6 @@
     <string name="error_select_quiz">Vertel Tamas dat hij een quiz moet selecteren.</string>
     <string name="error_invalid_name">Vul alstublieft je voor en achternaam in.</string>
     <string name="error_already_taken">Je hebt deze quiz al gedaan.</string>
+    <string name="btn_select_quiz">kies een andere quiz</string>
+    <string name="or">of</string>
 </resources>

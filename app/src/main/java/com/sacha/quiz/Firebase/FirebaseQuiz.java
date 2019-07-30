@@ -13,13 +13,14 @@ import com.sacha.quiz.AdminActivity;
 import com.sacha.quiz.AdminQuizActivity;
 import com.sacha.quiz.Classes.Question;
 import com.sacha.quiz.Classes.Quiz;
+import com.sacha.quiz.LoginActivity;
 import com.sacha.quiz.MainActivity;
 
 import java.util.ArrayList;
 
 public class FirebaseQuiz {
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
     String quizID;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     public void insert(final Quiz quiz, final ArrayList<Question> questions) {
         db.collection("quizzes")
@@ -92,7 +93,7 @@ public class FirebaseQuiz {
                 });
     }
 
-    public void getAll() {
+    public void getAll(final String activity) {
         db.collection("quizzes")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -111,16 +112,16 @@ public class FirebaseQuiz {
 
                             bdl.putParcelableArrayList("quizzes", quizzes);
                             msg.setData(bdl);
-                            AdminActivity.handler.sendMessage(msg);
-                        } else {
+                            if (activity.equals("Admin")) {
+                                AdminActivity.handler.sendMessage(msg);
+                            } else if (activity.equals("Login")) {
+                                LoginActivity.handler.sendMessage(msg);
+                            }
+                        }else {
                             Log.d(MainActivity.TAG, "Error getting quizzes: ", task.getException());
                         }
                     }
                 });
-    }
-
-    public void update() {
-
     }
 
     public void delete(final int quizID) {
@@ -129,7 +130,30 @@ public class FirebaseQuiz {
 
         batch.delete(db.collection("quizzes").document(id));
 
+        deleteQuestions(batch, quizID);
+    }
+
+    private void deleteQuestions(final WriteBatch batch, final int quizID) {
         db.collection("questions").whereEqualTo("quizID", quizID)
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (QueryDocumentSnapshot snapshot : queryDocumentSnapshots) {
+                    batch.delete(snapshot.getReference());
+                }
+
+                deleteScores(batch, quizID);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void deleteScores(final WriteBatch batch, final int quizID) {
+        db.collection("scores").whereEqualTo("quizID", quizID)
                 .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -160,10 +184,6 @@ public class FirebaseQuiz {
                 e.printStackTrace();
             }
         });
-    }
-
-    public void clear() {
-
     }
 
     public void set(Quiz quiz, ArrayList<Question> questions) {

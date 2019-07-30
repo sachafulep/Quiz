@@ -23,10 +23,10 @@ import java.util.List;
 
 public class AdminActivity extends AppCompatActivity {
     public static Handler handler;
+    List<String> players;
     private QuizAdapter quizAdapter;
     private PlayerAdapter playerAdapter;
     private List<Quiz> quizzes;
-    List<String> players;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +40,7 @@ public class AdminActivity extends AppCompatActivity {
         quizzes = new ArrayList<>();
         players = new ArrayList<>();
 
-        new FirebaseQuiz().getAll();
+        new FirebaseQuiz().getAll("Admin");
         new FirebasePlayer().getAll();
     }
 
@@ -111,7 +111,7 @@ public class AdminActivity extends AppCompatActivity {
         rvPlayers.setHasFixedSize(true);
         rvQuizzes.setLayoutManager(new LinearLayoutManager(this));
         rvPlayers.setLayoutManager(new LinearLayoutManager(this));
-        quizAdapter = new QuizAdapter(quizzes);
+        quizAdapter = new QuizAdapter(quizzes, false);
         playerAdapter = new PlayerAdapter(players);
         rvQuizzes.setAdapter(quizAdapter);
         rvPlayers.setAdapter(playerAdapter);

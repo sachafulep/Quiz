@@ -6,17 +6,17 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.sacha.quiz.Classes.User;
 import com.sacha.quiz.R;
 
 import java.util.List;
 
 public class HighScoreAdapter extends RecyclerView.Adapter<HighScoreAdapter.ViewHolder> {
-    List<String> names;
-    List<Integer> scores;
+    List<User> users;
 
-    public HighScoreAdapter(List<String> names, List<Integer> scores) {
-        this.names = names;
-        this.scores = scores;
+    public HighScoreAdapter(List<User> users) {
+        this.users = users;
     }
 
     @NonNull
@@ -30,13 +30,13 @@ public class HighScoreAdapter extends RecyclerView.Adapter<HighScoreAdapter.View
 
     @Override
     public void onBindViewHolder(@NonNull HighScoreAdapter.ViewHolder holder, int position) {
-        holder.tvName.setText(names.get(position));
-        holder.tvScore.setText(Integer.toString(scores.get(position)));
+        holder.tvName.setText(users.get(position).getFirstName() + " " + users.get(position).getLastName());
+        holder.tvScore.setText(Integer.toString(users.get(position).getScore()));
     }
 
     @Override
     public int getItemCount() {
-        return names.size();
+        return users.size();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

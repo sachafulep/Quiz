@@ -1,6 +1,7 @@
 package com.sacha.quiz;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -62,6 +63,7 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void updateQuestion() {
+        btnSubmit.setClickable(true);
         currentQuestion = questions.get(index);
         tvQuestion.setText(currentQuestion.getText());
         List<String> answers = currentQuestion.getAnswerList();
@@ -84,6 +86,7 @@ public class QuizActivity extends AppCompatActivity {
 
     private void checkAnswer() {
         if (currentAnswer != null) {
+            btnSubmit.setClickable(false);
             if (currentAnswer.equals(currentQuestion.getCorrectAnswer())) {
                 score++;
             }
@@ -108,6 +111,7 @@ public class QuizActivity extends AppCompatActivity {
         builder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 new FirebaseScore().insert(new Score(quizID, playerName, score));
+                startActivity(new Intent(QuizActivity.this, LoginActivity.class));
                 finish();
                 dialog.dismiss();
             }

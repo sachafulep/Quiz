@@ -14,7 +14,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.sacha.quiz.AdminActivity;
 import com.sacha.quiz.AdminQuizActivity;
-import com.sacha.quiz.Classes.Quiz;
+import com.sacha.quiz.Classes.User;
 import com.sacha.quiz.LoginActivity;
 import com.sacha.quiz.MainActivity;
 
@@ -23,13 +23,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FirebasePlayer {
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
     String playerID;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     public void insert(String firstName, String lastName) {
-        Map<String, String> player = new HashMap<>();
+        Map<String, Object> player = new HashMap<>();
         player.put("firstName", firstName);
         player.put("lastName", lastName);
+        player.put("score", 0);
 
         db.collection("players")
                 .document(firstName + " " + lastName)
@@ -41,7 +42,7 @@ public class FirebasePlayer {
                         Bundle bdl = new Bundle();
                         bdl.putString("type", "insertPlayer");
                         msg.setData(bdl);
-                        AdminQuizActivity.handler.sendMessage(msg);
+                        LoginActivity.handler.sendMessage(msg);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -109,17 +110,14 @@ public class FirebasePlayer {
                             Message msg = Message.obtain();
                             Bundle bdl = new Bundle();
                             bdl.putString("type", "getHighScores");
-                            ArrayList<String> names = new ArrayList<>();
-                            ArrayList<Integer> scores = new ArrayList<>();
+                            ArrayList<User> users = new ArrayList<>();
 
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(MainActivity.TAG, document.getId() + " => " + document.getData());
-                                names.add(document.getId());
-                                scores.add((int) (long) document.get("score"));
+                                users.add(document.toObject(User.class));
                             }
 
-                            bdl.putStringArrayList("names", names);
-                            bdl.putIntegerArrayList("scores", scores);
+                            bdl.putParcelableArrayList("users", users);
                             msg.setData(bdl);
                             LoginActivity.handler.sendMessage(msg);
                         } else {

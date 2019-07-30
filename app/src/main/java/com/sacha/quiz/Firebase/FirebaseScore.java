@@ -35,6 +35,11 @@ public class FirebaseScore {
             @Override
             public void onSuccess(Void aVoid) {
                 Log.d(MainActivity.TAG, "Tnsert score success!");
+                Message msg = Message.obtain();
+                Bundle bdl = new Bundle();
+                bdl.putString("type", "insertScore");
+                msg.setData(bdl);
+                LoginActivity.handler.sendMessage(msg);
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override

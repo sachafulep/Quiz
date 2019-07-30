@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
                             finish();
                         } else {
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
+
                         }
                     }
                 });

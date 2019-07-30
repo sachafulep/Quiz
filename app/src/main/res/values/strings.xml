@@ -29,4 +29,6 @@
     <string name="error_select_quiz">Tell Tamas to select a quiz.</string>
     <string name="error_invalid_name">Please fill in your first and last name.</string>
     <string name="error_already_taken">You have already taken this quiz.</string>
+    <string name="or">or</string>
+    <string name="btn_select_quiz">select a different quiz</string>
 </resources>
