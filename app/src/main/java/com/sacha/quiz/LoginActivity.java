@@ -79,10 +79,7 @@ public class LoginActivity extends AppCompatActivity {
         btnAdmin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(LoginActivity.this,
-                        AdminActivity.class);
-                startActivity(intent);
-//                showAdminDialog();
+                showAdminDialog();
             }
         });
 
